@@ -81,14 +81,19 @@ load_rc_config ${name}
 : ${airconnect_user:=airconnect}
 : ${airconnect_group:=airconnect}
 : ${airconnect_basedir:=/usr/local/share/airconnect}
-: ${airconnect_confdir:=/usr/local/etc/airconnect}
-: ${airconnect_logdir:=/var/log/airconnect}
-: ${airconnect_piddir:=/var/run/airconnect}
+: ${airconnect_logfile:=/var/log/airconnect/airconnect.log}
+: ${airconnect_pidfile:=/var/run/airconnect/airconnect.pid}
+: ${airconnect_codec:=flc}
+: ${airconnect_version:=1}
+: ${airconnect_conffile:=/usr/local/etc/airconnect/config.xml}
+: ${airconnect_latency:=1000:1000:f}
+: ${airconnect_exmodelnames:=}
+: ${airconnect_exmodelnumbers:=}
+: ${airconnect_incmodelnumbers:=S1,S3,S5,S9,S12,ZP80,ZP90,S15,ZP100,ZP120}
 
-pidfile="${airconnect_piddir}/${name}.pid"
-logfile="${airconnect_logdir}/${name}.log"
+
 command=${airconnect_basedir}/bin/airupnp-bsd-x64
-command_args="-x ${airconnect_confdir}/config.xml -o S1,S3,S5,S9,S12,ZP80,ZP90,S15,ZP100,ZP120 -l 1000:2000 -f ${logfile} -p ${pidfile} -z"
+command_args="-c ${airconnect_codec} -u ${airconnect_version} -x ${airconnect_conffile} -l ${airconnect_latency} -f ${airconnect_logfile} -p ${airconnect_pidfile} -m ${airconnect_exmodelnames} -n ${airconnect_exmodelnumbers} -o ${airconnect_incmodelnumbers} -z"
 
 run_rc_command "$1"
 
@@ -122,7 +127,9 @@ echo ">>> Setting permissions."
 chown -R ${AIRCONNECT_USER}:${AIRCONNECT_GROUP} ${BASEDIR} ${AIRCONNECT_CONF_DIR} ${AIRCONNECT_LOG_DIR} ${AIRCONNECT_PID_DIR}
 chmod +x ${BASEDIR}/bin/*
 
+ln -sf ${BASEDIR}/bin/airupnp-bsd-x64 /usr/local/bin/airconnect
+
 echo ">>> Enabling AirConnect service"
 sysrc "airconnect_enable=YES"
 
-service airconnect start
+service airconnect restart
